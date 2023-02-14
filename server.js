@@ -1,26 +1,30 @@
+const bodyParser = require('body-parser')
 const express = require('express')
+const cors = require('cors')
 
+const logger = require('./toolutils/logger')
 const verify = require('./toolutils/verify')
-const { expressjwt: jwt } = require("express-jwt")
+const config = require('./config')
 
 const app = express()
-const rule = verify.verifyRule()
-const unless_router = verify.verify_unless_router()
 
+// /////////////////////////////////// <中间件> ///////////////////////////////////
+app.use(logger) // 日志中间件
+app.use(cors()) // 跨域处理
+app.use(verify.verifyHandle()) // token 验证
+app.use(verify.verifyErrorHandle) // 无token异常全局处理
+app.use(bodyParser.json())  // 请求体解析中间件
+app.use(bodyParser.urlencoded({ extended: false }))
 
-app.use(jwt(rule).unless(unless_router))
-app.use((err, req, res, next) => { res.send({ err })})
+// /////////////////////////////////// <路由中间件> ///////////////////////////////////
+app.use(require('./api/users'))
+app.use(require('./api/article'))
 
-// router
-app.use(require('./app/api'))
-app.use(require('./app/user'))
+// /////////////////////////////////// <静态资源挂载> ///////////////////////////////////
+app.use(express.static('./static'))
 
-// mian
-app.get('/', function(req, res) {
-  res.send('<h1>hello world</h1>')
-})
-
-const server = app.listen(8081, function () {
+// /////////////////////////////////// <服务程序入口> ///////////////////////////////////
+const server = app.listen(config.port, function () {
   const address = server.address()
   const addr = address.address === '::' ? '127.0.0.1' : address.address
   console.log("================================================")

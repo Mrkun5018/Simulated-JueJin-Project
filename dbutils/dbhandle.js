@@ -5,7 +5,7 @@ const mysql_config = require('../config').db.mysql
 function attr_handle_pool() { return sql_handle.createPool(mysql_config) }
 
 function executeHnadle(pool, sql, data) {
-    console.log(`execute sql: <${sql}>, datas: ${data}`)
+    if (data) console.log(`execute sql: <${sql}>, datas: ${data}`)
     return new Promise((resolve, reject) => {
         pool.getConnection(function(error, connection){
 
@@ -64,7 +64,7 @@ async function update(pool, table, update, condition) {
     const updateSql = assist.formatSqlByObject(update)
     const conditionSql = assist.formatSqlByObject(condition)
     const sql = `UPDATE ${table} SET ${updateSql} WHERE ${conditionSql};`
-    return execute(pool, sql, null)
+    return await execute(pool, sql, null)
 }
 
 async function query(pool, table, fields, condition) {
@@ -75,6 +75,24 @@ async function query(pool, table, fields, condition) {
     return selectRes
 }
 
+async function enhancedQuery(pool, table, fields, items) {
+    const sqlKeyword = ["where"]
+    let params = ""
+    Object.keys(items).forEach((key) =>{
+        let char = ''
+        const val = items[key]
+        if (val instanceof Array) {
+            char = val.join(',')
+        } else if (val instanceof Object) {
+            char = assist.formatSqlByObject(val)
+        } else {char = val}
+        params += `${key} ${char} `
+    })
+    const flssql = assist.formatSqlByArray(fields)
+    const sql = `SELECT ${ flssql || '*' } FROM ${table} ${ params ? params : ''};`
+    return await select(pool, sql, null)
+}
+
 module.exports = {
     connection: attr_handle_pool,
     executeHnadle: executeHnadle,
@@ -83,5 +101,6 @@ module.exports = {
     inster: inster,
     remove: remove,
     update: update,
-    query: query
+    query: query,
+    enhancedQuery: enhancedQuery
 }

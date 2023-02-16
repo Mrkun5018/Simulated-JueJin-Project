@@ -1,7 +1,6 @@
 const router = require('express').Router()
 const db_handle = require('../dbutils/dbhandle')
 const utils = require('../toolutils/utils')
-const assist = require('../dbutils/assist')
 const connection = db_handle.connection()
 
 console.log("=== load route [article]")
@@ -49,15 +48,25 @@ router.post('/article/update', async function(req, res) {
 // 文章查询
 router.get('/article/select', async function(req, res) {
   console.log("===> [/article/select] request ")
-  const {condition, pagination} = req.body
+  let condition = ""
+  let pagination = ""
 
-  let limit = ""
-  if (pagination) {
-    const {size, page} = pagination
-    limit = `LIMIT ${(page - 1) * size}, ${size}`
+  const queryMap = {}
+
+  const condString = req.query.condition
+  const pageString = req.query.pagination
+  
+  if (condString) {
+    condition = JSON.parse(condString)
+    queryMap['WHERE'] = condition
+  }
+  if (pageString) {
+    pagination = JSON.parse(pageString)
+    const {size, page} = pagination   // size 页大小; page 当前页
+    queryMap['LIMIT'] = [(page - 1) * size, size]
   }
 
-  const selectRes = await db_handle.query(connection, 'article', null, condition)
+  const selectRes = await db_handle.enhancedQuery(connection, 'article', null, queryMap)
   const rspData = {data: selectRes, status: true}
   const respond = new utils.RespondHangdle(rspData)
   return res.send(respond)

@@ -6,7 +6,7 @@ module.exports = {
         expiresIn: 60 * 60 * 60 * 60, // 单位 秒
         unless: { 
             //path: 不需要验证 token 的路径标识符
-            "path": ["/enroll", "/login", "/", "/test", /^\/upload\/.*/] 
+            "path": ["/enroll", "/login", "/", "/test", /^\/upload\/.*/, /^\/article\/.*/] 
         }
     },
     db: {

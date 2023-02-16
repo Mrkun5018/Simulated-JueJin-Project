@@ -13,8 +13,8 @@ app.use(logger) // 日志中间件
 app.use(cors()) // 跨域处理
 app.use(verify.verifyHandle()) // token 验证
 app.use(verify.verifyErrorHandle) // 无token异常全局处理
-app.use(bodyParser.json())  // 请求体解析中间件
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(express.json())  // 请求体解析中间件
+app.use(express.urlencoded({ extended: false }))
 
 // /////////////////////////////////// <路由中间件> ///////////////////////////////////
 app.use(require('./api/users'))

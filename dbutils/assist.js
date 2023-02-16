@@ -1,20 +1,18 @@
 
 function formatSqlByObject(items) {
     if (!items) return ""
-    let sqlStatement = ""
-    let flag = false
+    let list = []
     Object.keys(items).forEach((key)=> {
-        sqlStatement += `${flag ? ",": "" } ${key}=${items[key]}`
-        if (!flag) flag = true
+        const value = items[key]
+        list.push(`${key}='${value}'`)
       })
-    return sqlStatement
+    return list.join(', ')
 }
 
 function formatSqlByArray(array) { 
     if (!array) return ''
     return array.join(', ')
 }
-
 
 module.exports = {
     formatSqlByObject: formatSqlByObject,
